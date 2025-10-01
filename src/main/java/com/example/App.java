@@ -8,5 +8,7 @@ public class App {
     public static void main(String[] args) {
         System.out.println(greet());
         System.out.ptintln("Setup Complete");
+        System.out.ptintln("Test");
+        
     }
 }
