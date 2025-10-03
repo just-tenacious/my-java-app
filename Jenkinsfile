@@ -10,14 +10,11 @@ pipeline {
     }
 
     stages {
-        stage('Build') {
+        stage('Build and Test') {
             steps {
-                bat 'mvn clean compile'
-            }
-        }
-        stage('Test') {
-            steps {
-                bat 'mvn test'
+                withMaven(maven: 'Maven3') {
+                    bat 'mvn clean verify'
+                }
             }
         }
         stage('Package') {
