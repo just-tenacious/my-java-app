@@ -2,17 +2,22 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'  // Make sure this matches your Jenkins Maven installation name
+        maven 'Maven3'
     }
 
     triggers {
-        githubPush()  // Requires GitHub webhook integration
+        githubPush()
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
         stage('Build and Test') {
             steps {
-                // Use withMaven wrapper for better Maven integration
                 withMaven(maven: 'Maven3') {
                     bat 'mvn clean verify'
                 }
