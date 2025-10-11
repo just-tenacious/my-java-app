@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-cred')
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
 
     tools {
@@ -24,26 +24,27 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t myapp:latest .'
+                bat "docker build -t shraddha15/myapp:%IMAGE_TAG% ."
             }
         }
 
         stage('Push to DockerHub') {
             steps {
-                bat """
-                echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin
-                docker tag myapp:latest shraddha15/myapp:latest
-                docker push shraddha15/myapp:latest
-                """
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat """
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                        docker push shraddha15/myapp:%IMAGE_TAG%
+                    """
+                }
             }
         }
 
         stage('Deploy to Server') {
             steps {
-                bat '''
+                bat """
                 ssh -o StrictHostKeyChecking=no user@192.168.3.211 ^
-                "docker pull shraddha15/myapp:latest && docker stop myapp || exit 0 && docker rm myapp || exit 0 && docker run -d -p 8080:8080 --name myapp shraddha15/myapp:latest"
-                '''
+                "docker pull shraddha15/myapp:%IMAGE_TAG% && docker stop myapp || true && docker rm myapp || true && docker run -d -p 8080:8080 --name myapp shraddha15/myapp:%IMAGE_TAG%"
+                """
             }
         }
     }
