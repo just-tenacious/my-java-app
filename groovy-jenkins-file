@@ -9,31 +9,31 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/just-tenacious/my-java-app.git'
+                checkout scm
             }
         }
 
-        stage('Build & Test') {
+        stage('Build and Test') {
             steps {
                 withMaven(maven: 'Maven3') {
-                    bat 'mvn clean package'
+                    bat 'mvn clean verify'
                 }
             }
         }
 
-        stage('Archive Artifact') {
+        stage('Package') {
             steps {
-                archiveArtifacts artifacts: 'target\\*.jar', fingerprint: true
+                bat 'mvn package'
             }
         }
     }
 
     post {
         success {
-            echo '✅ CD Ready: Artifact stored in Jenkins'
+            echo 'Build and Tests SUCCESSFUL ✅'
         }
         failure {
-            echo '❌ CD Failed: Build or Archive step failed'
+            echo 'Build FAILED ❌'
         }
     }
 }
