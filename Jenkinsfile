@@ -1,8 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-cred')
+    }
+
     tools {
-        // jdk 'jdk-17'  
         maven 'Maven3'
     }
 
@@ -15,25 +18,42 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                withMaven(maven: 'Maven3') {
-                    bat 'mvn clean package'
-                }
+                bat 'mvn clean package'
             }
         }
 
-        stage('Archive Artifact') {
+        stage('Build Docker Image') {
             steps {
-                archiveArtifacts artifacts: 'target\\*.jar', fingerprint: true
+                bat 'docker build -t myapp:latest .'
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                bat """
+                echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin
+                docker tag myapp:latest shraddha15/myapp:latest
+                docker push shraddha15/myapp:latest
+                """
+            }
+        }
+
+        stage('Deploy to Server') {
+            steps {
+                bat '''
+                ssh -o StrictHostKeyChecking=no user@server ^
+                "docker pull shraddha15/myapp:latest && docker stop myapp || exit 0 && docker rm myapp || exit 0 && docker run -d -p 8080:8080 --name myapp shraddha15/myapp:latest"
+                '''
             }
         }
     }
 
     post {
         success {
-            echo '✅ CD Ready: Artifact stored in Jenkins'
+            echo '🚀 CDp Done: App deployed to server!'
         }
         failure {
-            echo '❌ CD Failed: Build or Archive step failed'
+            echo '❌ Deployment Failed! Check logs.'
         }
     }
 }
