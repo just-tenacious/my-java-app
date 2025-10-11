@@ -1,39 +1,78 @@
+// pipeline {
+//     agent any
+
+//     tools {
+//         jdk 'jdk-17'  
+//         maven 'Maven3'
+//     }
+
+//     stages {
+//         stage('Checkout') {
+//             steps {
+//                 checkout scm
+//             }
+//         }
+
+//         stage('Build and Test') {
+//             steps {
+//                 withMaven(maven: 'Maven3') {
+//                     bat 'mvn clean verify'
+//                 }
+//             }
+//         }
+
+//         stage('Package') {
+//             steps {
+//                 bat 'mvn package'
+//             }
+//         }
+//     }
+
+//     post {
+//         success {
+//             echo 'Build and Tests SUCCESSFUL ✅'
+//         }
+//         failure {
+//             echo 'Build FAILED ❌'
+//         }
+//     }
+// }
+
 pipeline {
     agent any
 
     tools {
-        jdk 'jdk-17'  
         maven 'Maven3'
+    }
+
+    triggers {
+        githubPush()
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'main', url: 'https://github.com/example/my-java-app.git'
             }
         }
-
-        stage('Build and Test') {
+        stage('Build') {
             steps {
-                withMaven(maven: 'Maven3') {
-                    bat 'mvn clean verify'
-                }
+                sh 'mvn clean compile'
             }
         }
-
-        stage('Package') {
+        stage('Test') {
             steps {
-                bat 'mvn package'
+                sh 'mvn test'
             }
         }
     }
 
     post {
         success {
-            echo 'Build and Tests SUCCESSFUL ✅'
+            echo '✅ CI Passed: Build and Tests Successful'
         }
         failure {
-            echo 'Build FAILED ❌'
+            echo '❌ CI Failed: Check Build Logs'
         }
     }
 }
