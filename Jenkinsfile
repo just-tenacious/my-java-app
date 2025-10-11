@@ -41,7 +41,7 @@ pipeline {
         stage('Deploy to Server') {
             steps {
                 bat '''
-                ssh -o StrictHostKeyChecking=no user@server ^
+                ssh -o StrictHostKeyChecking=no user@192.168.3.211 ^
                 "docker pull shraddha15/myapp:latest && docker stop myapp || exit 0 && docker rm myapp || exit 0 && docker run -d -p 8080:8080 --name myapp shraddha15/myapp:latest"
                 '''
             }
