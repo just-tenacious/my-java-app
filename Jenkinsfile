@@ -42,6 +42,7 @@ pipeline {
     agent any
 
     tools {
+        jdk 'jdk-17'  
         maven 'Maven3'
     }
 
@@ -52,18 +53,29 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/just-tenacious/my-java-app.git'
+                checkout scm
             }
         }
+
         stage('Build') {
             steps {
-                sh 'mvn clean compile'
+                withMaven(maven: 'Maven3') {
+                    bat 'mvn clean compile'
+                }
             }
         }
+
         stage('Test') {
             steps {
-                sh 'mvn test'
+                withMaven(maven: 'Maven3') {
+                    bat 'mvn test'
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                bat 'mvn package'
             }
         }
     }
