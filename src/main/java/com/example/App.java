@@ -9,5 +9,6 @@ public class App {
         System.out.println(greet());
         System.out.println("Setup Complete");
         System.out.println("Test");
+        System.out.println("Completed");
     }
 }
